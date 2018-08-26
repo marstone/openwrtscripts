@@ -1,0 +1,77 @@
+#!/bin/sh
+# Copyright (C) 2014 marstone.net
+
+VPNDEV="xl2tpd-client"
+CNDEV="wlan1"
+LOCK="/tmp/xl2tpd-client.lock"
+PID=$$
+
+lock() {
+	logger "try to get lock:$LOCK"
+    for i in 1 2 3 4 5 6
+	do
+		if [ -f $LOCK ]; then
+			logger "got $LOCK , sleep 10 secs. #$i/6"
+			sleep 10
+		else
+			break
+		fi
+	done
+
+    if [ -f $LOCK ]; then
+		logger "still got $LOCK , I'm aborted. fix me."
+		$ERROR='no lock'
+		exit 0
+	fi
+	
+	# create the lock
+	logger "lock got." >> $LOCK
+}
+
+unlock(){
+    # release the lock
+    rm -f $LOCK
+}
+
+
+start() {
+	lock
+	COUNT=0
+    while [ $COUNT -eq 0 ]
+    do
+		logger "waiting for '$CNDEV' connection..."
+		sleep 2
+		COUNT=$(route -n | grep $CNDEV | wc -l)
+    done
+    
+	logger "internet connected. route count=$COUNT"
+
+    if [ $COUNT -lt 100 ]; then
+        # CNGW=$(uci get network.wan.gateway)
+        # if [ $COUNT2 -gt 0 ]; then
+        #    CNGW=$(ifconfig | grep pppoe-wan -A1 | grep -Eo "P-t-P:([0-9.]+)" | cut -d: -f2)
+        # fi
+	CNGW="192.168.200.1"
+#        /etc/ppp/ip-route add /etc/ppp/ipwhite "via $CNGW"
+#        /etc/ppp/ip-route add /etc/ppp/ipcn "via $CNGW"
+    fi
+
+	iptables -A POSTROUTING -t nat -o $VPNDEV -j MASQUERADE
+
+	logger "adjust default route to $VPNDEV"
+
+	ip route del 119.81.239.175
+	ip route add 119.81.239.175 via 192.168.200.1 dev wlan1 
+	ip route del 103.42.212.213
+	ip route add 103.42.212.213 via 192.168.200.1 dev wlan1 
+
+	ip route del default
+	ip route add default via 10.10.10.1 dev $VPNDEV
+
+	logger "not restarting dnsmasq..."
+#	/etc/init.d/dnsmasq restart
+	unlock
+	logger "script completed for $VPNDEV" 
+}
+
+start &

@@ -1,0 +1,32 @@
+#!/bin/sh
+# Copyright (C) 2012 marstone.net
+
+
+start()
+{	
+	COUNT=0
+	while [ $COUNT -eq 0 ]
+	do
+		logger "waiting for pppoe & eth0 connection..."
+		sleep 2
+		COUNT=$(route -n | grep -Eo eth0 | wc -l)
+		COUNT2=$(route -n | grep -Eo pppoe | wc -l)
+		COUNT=$(($COUNT+$COUNT2))
+	done
+
+	echo "internet connected. route count=$COUNT"
+
+	if [ $COUNT -lt 100 ]; then
+		CNGW=$(uci get network.wan.gateway)
+		if [ $COUNT2 -gt 0 ]; then
+			CNGW=$(ifconfig | grep pppoe-wan -A1 | grep -Eo "P-t-P:([0-9.]+)" | cut -d: -f2)
+		fi
+		/etc/openvpn/route.sh add $CNGW /etc/openvpn/ipwhite &
+		/etc/openvpn/route.sh add $CNGW /etc/openvpn/ipcn &
+	fi
+
+	vpnc	
+
+}
+
+start &

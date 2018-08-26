@@ -1,0 +1,49 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2012 marstone.net
+
+START=105
+
+PID=$$
+INFO="[INFO#${PID}]"
+LOG='/tmp/vpnc.log'
+
+log() {
+	echo "$INFO $(date "+%d/%b/%Y:%H:%M:%S") $1"
+	echo "$INFO $(date "+%d/%b/%Y:%H:%M:%S") $1" >> $LOG
+}
+
+start() {
+	log "starting vpnc service..."
+	/etc/vpnc/vpnc-start	
+}
+
+stop() {
+	log "stopping vpnc service..."
+	vpnc-disconnect
+}
+
+clear() {
+	stop
+        CNGW=$(ifconfig | grep pppoe-wan -A1 | grep -Eo "P-t-P:([0-9.]+)" | cut -d: -f2)
+        /etc/openvpn/route.sh del $CNGW /etc/openvpn/ipwhite &
+        /etc/openvpn/route.sh del $CNGW /etc/openvpn/ipcn &
+}
+
+restart() {
+	log "disconnecting vpnc..."
+	stop
+
+	COUNT=1
+	while [ $COUNT -gt 0 ]
+	do
+		log "waiting vpnc processes ($COUNT) dispearing.. "
+		#log "------- start of waiting processes --------"
+		#log "$PS"
+		#log "-------  end of waiting processes  --------"
+		sleep 1
+		PS=$(ps w | grep vpnc | grep -v restart | grep -v grep)
+		COUNT=$(echo $PS | grep vpnc | wc -l)
+	done
+	# echo "starting vpnc..."
+	start
+}

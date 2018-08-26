@@ -1,0 +1,36 @@
+#!/bin/sh
+
+FILE=$2
+
+if [ ! -e $FILE ] 
+then
+	echo "file '$FILE' not exists."
+	exit
+fi
+
+echo "update route for [$FILE] started."
+logger "update route for [$FILE] started."
+
+cat $FILE | while read LINE
+do
+	AORD='add'
+	if [ "$1" = 'del' ]; then AORD='del'; fi
+	
+	SPLASH=$(echo $line | grep / -Eo)
+	COMMENT=$(echo $line | grep '#' -Eo)
+	IP=$(echo $LINE | grep "[0-9]\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]" -Eo)
+
+	if [ "$COMMENT" != '#' ] && [ "$IP" ]
+	then
+		CMD="ip route $AORD $LINE $3 $4 $5 $6"
+		echo $CMD
+		$CMD
+	else
+		if [ ! "$IP" ]; then
+			echo "Invalid line:$LINE"
+		fi
+	fi  	
+done
+
+echo "update route for [$FILE] complete."
+logger "update route for [$FILE] complete."

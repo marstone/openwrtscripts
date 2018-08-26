@@ -1,0 +1,19 @@
+#!/bin/sh
+
+logger 'adding nic routes to pptp-studio'
+#route add -net 202.120.0.0/22 dev pptp-studio
+#route add 202.120.3.158 dev pptp-studio
+#route add 202.120.3.159 dev pptp-studio
+
+route add -net 202.120.58.0/24 dev pptp-studio
+route add -net 202.120.60.0/22 dev pptp-studio
+route add 202.120.3.158 dev pptp-studio
+route add 202.120.3.156 dev pptp-studio
+route add -net 202.120.32.0/24 dev pptp-studio
+# lib
+route add -net 202.121.183.0/24 dev pptp-studio
+# openstack
+route add -net 202.121.178.0/24 dev pptp-studio
+
+iptables -A POSTROUTING -t nat -o pptp-studio -j MASQUERADE
+

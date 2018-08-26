@@ -1,0 +1,27 @@
+debug
+logfile /var/log/pptp-client.log
+#defaultroute
+nodefaultroute
+noauth
+nodetach
+refuse-eap
+lcp-echo-failure 3
+lcp-echo-interval 2
+#persist:re-connect if failed.
+persist
+usepeerdns
+idle 0
+ipparam kelokepptpd
+refuse-eap
+refuse-pap
+refuse-chap
+refuse-mschap
+mppe required,no40,no56,stateless
+mtu 1450
+mru 1450
+
+name joy
+password ********
+
+ip-up-script /root/pptp/scripts/up.sh                 
+ip-down-script /root/pptp/scripts/down.sh 
