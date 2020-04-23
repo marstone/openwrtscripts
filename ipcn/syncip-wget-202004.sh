@@ -7,7 +7,7 @@
 #http://www.tcp5.com/addresslist/telecom.rsc
 #http://www.tcp5.com/addresslist/unicom.rsc'
 
-ADDR='./tcp5-20160907/all_china2016-09-07-06.rsc'
+ADDR='http://www.tcp5.com/list/2020.04/all_china2020-04-21-04.rsc'
 
 TEMPFILE='/tmp/ipcn.tmp'
 TEMPRSC='/tmp/ipcn.rsc'
@@ -25,8 +25,7 @@ ADDRESS=ADDR[0]
 for ADDRESS in $ADDR
 do
 	echo "loading $ADDRESS..."
-    cp $ADDRESS $TEMPRSC
-	# wgeti $ADDRESS -O $TEMPRSC
+	wget $ADDRESS -O $TEMPRSC
 	touch $TEMPRSC
 	cat $TEMPRSC | grep -Eo "([0-9]+\.){3}[0-9]+[/[0-9]+]*" >> $TEMPFILE 
 done
