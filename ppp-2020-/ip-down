@@ -1,5 +1,0 @@
-#!/bin/sh
-
-source /etc/ppp/ip-utils
-ppp_hook "down" $@
-
